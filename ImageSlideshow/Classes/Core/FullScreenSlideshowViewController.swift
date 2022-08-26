@@ -15,6 +15,10 @@ open class FullScreenSlideshowViewController: UIViewController {
         slideshow.zoomEnabled = true
         slideshow.contentScaleMode = UIViewContentMode.scaleAspectFit
         slideshow.pageIndicatorPosition = PageIndicatorPosition(horizontal: .center, vertical: .bottom)
+        let pageIndicator = UIPageControl()
+        pageIndicator.currentPageIndicatorTintColor = UIColor(red: 30/255.0, green: 136/255.0, blue: 229/255.0, alpha: 1.0)
+        pageIndicator.pageIndicatorTintColor = UIColor.black.withAlphaComponent(0.2)
+        slideshow.pageIndicator = pageIndicator
         // turns off the timer
         slideshow.slideshowInterval = 0
         slideshow.autoresizingMask = [UIViewAutoresizing.flexibleWidth, UIViewAutoresizing.flexibleHeight]
@@ -38,7 +42,7 @@ open class FullScreenSlideshowViewController: UIViewController {
     open var inputs: [InputSource]?
 
     /// Background color
-    open var backgroundColor = UIColor.black
+    open var backgroundColor = UIColor.white
 
     /// Enables/disable zoom
     open var zoomEnabled = true {
@@ -46,6 +50,9 @@ open class FullScreenSlideshowViewController: UIViewController {
             slideshow.zoomEnabled = zoomEnabled
         }
     }
+    
+    /// top bar height
+    open var topBarHeight: CGFloat = 0.0
 
     fileprivate var isInit = true
 
@@ -70,11 +77,40 @@ open class FullScreenSlideshowViewController: UIViewController {
         }
 
         view.addSubview(slideshow)
-
-        // close button configuration
-        closeButton.setImage(UIImage(named: "ic_cross_white", in: .module, compatibleWith: nil), for: UIControlState())
-        closeButton.addTarget(self, action: #selector(FullScreenSlideshowViewController.close), for: UIControlEvents.touchUpInside)
-        view.addSubview(closeButton)
+    }
+    
+    private func addNavBar() {
+        let navView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: topBarHeight))
+        navView.backgroundColor = .white
+        self.view.addSubview(navView)
+        
+        let borderView = UIView(frame: CGRect(x: 0, y: topBarHeight, width: view.frame.width, height: 1))
+        borderView.backgroundColor = UIColor.black.withAlphaComponent(0.12)
+        navView.addSubview(borderView)
+        
+        let label = UILabel()
+        label.font = UIFont(name: "Lato-Regular", size: 17.0)
+        label.textColor = UIColor.black.withAlphaComponent(0.6)
+        label.text = "\(initialPage+1)/\(inputs?.count ?? 1)"
+        label.translatesAutoresizingMaskIntoConstraints = false
+        navView.addSubview(label)
+        label.leadingAnchor.constraint(equalTo: navView.leadingAnchor, constant: 16.0).isActive = true
+        label.bottomAnchor.constraint(equalTo: navView.bottomAnchor, constant: -12.0).isActive = true
+        slideshow.currentPageChanged = { [weak self] page in
+            guard let self = self else { return }
+            label.text = "\(page+1)/\(self.inputs?.count ?? 1)"
+        }
+        
+        let cancelButton = UIButton()
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.setTitleColor(UIColor(red: 30.0/255, green: 136.0/255, blue: 229/255, alpha: 1.0), for: .normal)
+        cancelButton.titleLabel?.font = UIFont(name: "Lato-Regular", size: 17.0)
+        cancelButton.addTarget(self, action: #selector(FullScreenSlideshowViewController.close), for: UIControlEvents.touchUpInside)
+        cancelButton.translatesAutoresizingMaskIntoConstraints = false
+        navView.addSubview(cancelButton)
+        cancelButton.trailingAnchor.constraint(equalTo: navView.trailingAnchor, constant: -16.0).isActive = true
+        cancelButton.bottomAnchor.constraint(equalTo: navView.bottomAnchor, constant: -6.0).isActive = true
+        cancelButton.heightAnchor.constraint(equalToConstant: 32.0).isActive = true
     }
 
     override open var prefersStatusBarHidden: Bool {
@@ -87,6 +123,7 @@ open class FullScreenSlideshowViewController: UIViewController {
         if isInit {
             isInit = false
             slideshow.setCurrentPage(initialPage, animated: false)
+            addNavBar()
         }
     }
 
@@ -111,7 +148,7 @@ open class FullScreenSlideshowViewController: UIViewController {
             closeButton.frame = closeButtonFrame ?? CGRect(x: max(10, safeAreaInsets.left), y: max(10, safeAreaInsets.top), width: 40, height: 40)
         }
 
-        slideshow.frame = view.frame
+        slideshow.frame = CGRect(x: view.frame.origin.x, y: topBarHeight, width: view.frame.width, height: view.frame.height - topBarHeight)
     }
 
     func close() {
