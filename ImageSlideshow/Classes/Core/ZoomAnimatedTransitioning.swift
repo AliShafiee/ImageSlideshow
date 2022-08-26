@@ -207,7 +207,11 @@ class ZoomInAnimator: ZoomAnimator, UIViewControllerAnimatedTransitioning {
         toViewController.view.frame = transitionContext.finalFrame(for: toViewController)
 
         let transitionBackgroundView = UIView(frame: containerView.frame)
-        transitionBackgroundView.backgroundColor = toViewController.backgroundColor
+        if referenceImageView?.image == placeHolderImage {
+            transitionBackgroundView.backgroundColor = UIColor(red: 245/255.0, green: 245/255.0, blue: 245/255.0, alpha: 1.0)
+        } else {
+            transitionBackgroundView.backgroundColor = toViewController.backgroundColor
+        }
         containerView.addSubview(transitionBackgroundView)
 
         #if swift(>=4.2)
@@ -325,8 +329,13 @@ class ZoomOutAnimator: ZoomAnimator, UIViewControllerAnimatedTransitioning {
             transitionViewFinalFrame = referenceSlideshowView?.frame ?? CGRect.zero
         }
 
+        let transitionView = UIImageView(image: fromViewController.slideshow.currentSlideshowItem?.imageView.image)
         let transitionBackgroundView = UIView(frame: containerView.frame)
-        transitionBackgroundView.backgroundColor = fromViewController.backgroundColor
+        if transitionView.image == placeHolderImage {
+            transitionBackgroundView.backgroundColor = UIColor(red: 245/255.0, green: 245/255.0, blue: 245/255.0, alpha: 1.0)
+        } else {
+            transitionBackgroundView.backgroundColor = fromViewController.backgroundColor
+        }
         containerView.addSubview(transitionBackgroundView)
         #if swift(>=4.2)
         containerView.sendSubviewToBack(transitionBackgroundView)
@@ -334,7 +343,6 @@ class ZoomOutAnimator: ZoomAnimator, UIViewControllerAnimatedTransitioning {
         containerView.sendSubview(toBack: transitionBackgroundView)
         #endif
 
-        let transitionView = UIImageView(image: fromViewController.slideshow.currentSlideshowItem?.imageView.image)
         if transitionView.image == placeHolderImage {
             transitionView.contentMode = UIViewContentMode.center
         } else {
