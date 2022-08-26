@@ -548,6 +548,7 @@ open class ImageSlideshow: UIView {
         slideshowTransitioningDelegate = ZoomAnimatedTransitioningDelegate(slideshowView: self, slideshowController: fullscreen, placeHolderImage: placeHolderImage)
         fullscreen.transitioningDelegate = slideshowTransitioningDelegate
         fullscreen.modalPresentationStyle = .custom
+        fullscreen.topBarHeight = UIApplication.shared.statusBarFrame.size.height + (controller.navigationController?.navigationBar.frame.height ?? 0.0)
         controller.present(fullscreen, animated: true, completion: completion)
 
         return fullscreen
