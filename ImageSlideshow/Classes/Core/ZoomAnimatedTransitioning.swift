@@ -24,15 +24,17 @@ open class ZoomAnimatedTransitioningDelegate: NSObject, UIViewControllerTransiti
 
     /// Enables or disables swipe-to-dismiss interactive transition
     open var slideToDismissEnabled: Bool = true
-
+    private var placeHolderImage: UIImage?
+    
     /**
         Init the transitioning delegate with a source ImageSlideshow
         - parameter slideshowView: ImageSlideshow instance to animate the transition from
         - parameter slideshowController: FullScreenViewController instance to animate the transition to
      */
-    public init(slideshowView: ImageSlideshow, slideshowController: FullScreenSlideshowViewController) {
+    public init(slideshowView: ImageSlideshow, slideshowController: FullScreenSlideshowViewController, placeHolderImage: UIImage?) {
         self.referenceSlideshowView = slideshowView
         self.referenceSlideshowController = slideshowController
+        self.placeHolderImage = placeHolderImage
 
         super.init()
 
@@ -44,9 +46,10 @@ open class ZoomAnimatedTransitioningDelegate: NSObject, UIViewControllerTransiti
         - parameter imageView: UIImageView instance to animate the transition from
         - parameter slideshowController: FullScreenViewController instance to animate the transition to
      */
-    public init(imageView: UIImageView, slideshowController: FullScreenSlideshowViewController) {
+    public init(imageView: UIImageView, slideshowController: FullScreenSlideshowViewController, placeHolderImage: UIImage?) {
         self.referenceImageView = imageView
         self.referenceSlideshowController = slideshowController
+        self.placeHolderImage = placeHolderImage
 
         super.init()
 
@@ -98,9 +101,9 @@ open class ZoomAnimatedTransitioningDelegate: NSObject, UIViewControllerTransiti
 
     open func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         if let reference = referenceSlideshowView {
-            return ZoomInAnimator(referenceSlideshowView: reference, parent: self)
+            return ZoomInAnimator(referenceSlideshowView: reference, parent: self, placeHolderImage: placeHolderImage)
         } else if let reference = referenceImageView {
-            return ZoomInAnimator(referenceImageView: reference, parent: self)
+            return ZoomInAnimator(referenceImageView: reference, parent: self, placeHolderImage: placeHolderImage)
         } else {
             return nil
         }
@@ -108,9 +111,9 @@ open class ZoomAnimatedTransitioningDelegate: NSObject, UIViewControllerTransiti
 
     open func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         if let reference = referenceSlideshowView {
-            return ZoomOutAnimator(referenceSlideshowView: reference, parent: self)
+            return ZoomOutAnimator(referenceSlideshowView: reference, parent: self, placeHolderImage: placeHolderImage)
         } else if let reference = referenceImageView {
-            return ZoomOutAnimator(referenceImageView: reference, parent: self)
+            return ZoomOutAnimator(referenceImageView: reference, parent: self, placeHolderImage: placeHolderImage)
         } else {
             return nil
         }
@@ -165,17 +168,20 @@ class ZoomAnimator: NSObject {
     var referenceImageView: UIImageView?
     var referenceSlideshowView: ImageSlideshow?
     var parent: ZoomAnimatedTransitioningDelegate
+    var placeHolderImage: UIImage?
 
-    init(referenceSlideshowView: ImageSlideshow, parent: ZoomAnimatedTransitioningDelegate) {
+    init(referenceSlideshowView: ImageSlideshow, parent: ZoomAnimatedTransitioningDelegate, placeHolderImage: UIImage?) {
         self.referenceSlideshowView = referenceSlideshowView
         self.referenceImageView = referenceSlideshowView.currentSlideshowItem?.imageView
         self.parent = parent
+        self.placeHolderImage = placeHolderImage
         super.init()
     }
 
-    init(referenceImageView: UIImageView, parent: ZoomAnimatedTransitioningDelegate) {
+    init(referenceImageView: UIImageView, parent: ZoomAnimatedTransitioningDelegate, placeHolderImage: UIImage?) {
         self.referenceImageView = referenceImageView
         self.parent = parent
+        self.placeHolderImage = placeHolderImage
         super.init()
     }
 }
@@ -216,7 +222,11 @@ class ZoomInAnimator: ZoomAnimator, UIViewControllerAnimatedTransitioning {
         var transitionViewFinalFrame = finalFrame
         if let referenceImageView = referenceImageView {
             transitionView = UIImageView(image: referenceImageView.image)
-            transitionView!.contentMode = UIViewContentMode.scaleAspectFill
+            if referenceImageView.image == placeHolderImage {
+                transitionView!.contentMode = UIViewContentMode.center
+            } else {
+                transitionView!.contentMode = UIViewContentMode.scaleAspectFill
+            }
             transitionView!.clipsToBounds = true
             transitionView!.frame = containerView.convert(referenceImageView.bounds, from: referenceImageView)
             containerView.addSubview(transitionView!)
@@ -325,7 +335,11 @@ class ZoomOutAnimator: ZoomAnimator, UIViewControllerAnimatedTransitioning {
         #endif
 
         let transitionView = UIImageView(image: fromViewController.slideshow.currentSlideshowItem?.imageView.image)
-        transitionView.contentMode = UIViewContentMode.scaleAspectFill
+        if transitionView.image == placeHolderImage {
+            transitionView.contentMode = UIViewContentMode.center
+        } else {
+            transitionView.contentMode = UIViewContentMode.scaleAspectFill
+        }
         transitionView.clipsToBounds = true
         transitionView.frame = transitionViewInitialFrame
         containerView.addSubview(transitionView)
