@@ -56,9 +56,13 @@ public class KingfisherSource: NSObject, InputSource {
     ///   - callback: Completion callback with an optional image
     @objc
     public func load(to imageView: UIImageView, with callback: @escaping (UIImage?) -> Void) {
+        imageView.contentMode = .center
+        imageView.backgroundColor = UIColor(red: 245/255.0, green: 245/255.0, blue: 245/255.0, alpha: 1.0)
         imageView.kf.setImage(with: self.url, placeholder: self.placeholder, options: self.options, progressBlock: nil) { result in
             switch result {
             case .success(let image):
+                imageView.backgroundColor = .clear
+                imageView.contentMode = .scaleAspectFit
                 callback(image.image)
             case .failure:
                 callback(self.placeholder)
