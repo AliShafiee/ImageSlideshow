@@ -29,19 +29,25 @@ import UIKit
 @objcMembers
 open class ImageSource: NSObject, InputSource {
     var image: UIImage
+    var contentMode: UIView.ContentMode?
+    var backgroundColor: UIColor?
 
     /// Initializes a new Image Source with UIImage
     /// - parameter image: Image to be loaded
-    public init(image: UIImage) {
+    public init(image: UIImage, contentMode: UIView.ContentMode? = nil, backgroundColor: UIColor? = nil) {
         self.image = image
+        self.contentMode = contentMode
+        self.backgroundColor = backgroundColor
     }
 
     /// Initializes a new Image Source with an image name from the main bundle
     /// - parameter imageString: name of the file in the application's main bundle
     @available(*, deprecated, message: "Use `BundleImageSource` instead")
-    public init?(imageString: String) {
+    public init?(imageString: String, contentMode: UIView.ContentMode? = nil, backgroundColor: UIColor? = nil) {
         if let image = UIImage(named: imageString) {
             self.image = image
+            self.contentMode = contentMode
+            self.backgroundColor = backgroundColor
             super.init()
         } else {
             return nil
@@ -50,6 +56,12 @@ open class ImageSource: NSObject, InputSource {
 
     public func load(to imageView: UIImageView, with callback: @escaping (UIImage?) -> Void) {
         imageView.image = image
+        if let contentMode = contentMode {
+            imageView.contentMode = contentMode
+        }
+        if let backgroundColor = backgroundColor {
+            imageView.backgroundColor = backgroundColor
+        }
         callback(image)
     }
 }
