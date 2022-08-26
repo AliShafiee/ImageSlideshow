@@ -216,7 +216,7 @@ class ZoomInAnimator: ZoomAnimator, UIViewControllerAnimatedTransitioning {
         containerView.sendSubview(toBack: transitionBackgroundView)
         #endif
 
-        let finalFrame = toViewController.view.frame
+        let finalFrame = CGRect(x: toViewController.view.frame.origin.x, y: toViewController.topBarHeight, width: toViewController.view.frame.width, height: toViewController.view.frame.height - toViewController.topBarHeight)
 
         var transitionView: UIImageView?
         var transitionViewFinalFrame = finalFrame
