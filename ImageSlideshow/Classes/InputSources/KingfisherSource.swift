@@ -15,7 +15,7 @@ import Kingfisher
 /// Input Source to image using Kingfisher
 public class KingfisherSource: NSObject, InputSource {
     /// url to load
-    public var url: URL
+    public var url: URL?
 
     /// placeholder used before image is loaded
     public var placeholder: UIImage?
@@ -48,6 +48,17 @@ public class KingfisherSource: NSObject, InputSource {
             return nil
         }
     }
+    
+    public init?(urlString: String, placeHolderImage: UIImage? = nil, downloadApiURL: String, accessToken: String, xsrfToken: String) {
+        super.init()
+        if let validUrl = createURL(urlString, downloadApiURL: downloadApiURL) {
+            self.url = validUrl
+            self.placeholder = placeHolderImage
+            self.options = createOptions(urlString, accessToken: accessToken, xsrfToken: xsrfToken)
+        } else {
+            return nil
+        }
+    }
 
     /// Load an image to an UIImageView
     ///
@@ -75,5 +86,54 @@ public class KingfisherSource: NSObject, InputSource {
     /// - Parameter imageView: UIImage view with the download task that should be canceled
     public func cancelLoad(on imageView: UIImageView) {
         imageView.kf.cancelDownloadTask()
+    }
+    
+    private func createURL(_ urlString: String, downloadApiURL: String) -> URL? {
+        if isPrivateBucket(urlString) {
+            return createPrivateURL(urlString, downloadApiURL: downloadApiURL)
+        } else {
+            return createPublicURL(urlString)
+        }
+    }
+    
+    private func createOptions(_ urlString: String, accessToken: String, xsrfToken: String) ->  [KingfisherOptionsInfoItem] {
+        var options: [KingfisherOptionsInfoItem] = [.transition(.fade(0.2))]
+        
+        if isPrivateBucket(urlString) {
+            options.append(.requestModifier(createPrivateBucketRequestModifier(urlString, accessToken: accessToken, xsrfToken: xsrfToken)))
+        } else {
+            options.append(.cacheOriginalImage)
+        }
+        
+        return options
+    }
+    
+    private func isPrivateBucket(_ urlString: String) -> Bool {
+        return urlString.contains("private")
+    }
+    
+    private func createPublicURL(_ urlString: String) -> URL? {
+        return URL(string: urlString)
+    }
+    
+    private func createPrivateURL(_ urlString: String, downloadApiURL: String) -> URL? {
+        let appended = "?cahceString=\(urlString.createCacheString())"
+        return URL(string: downloadApiURL + appended)
+    }
+    
+    private func createPrivateBucketRequestModifier(_ urlString: String, accessToken: String, xsrfToken: String) -> AnyModifier {
+        return AnyModifier { req in
+            var request = req
+            request.setValue(urlString, forHTTPHeaderField: "url")
+            request.setValue(accessToken, forHTTPHeaderField: "Authorization")
+            request.setValue(xsrfToken, forHTTPHeaderField: "x-xsrf-token")
+            return request
+        }
+    }
+}
+
+fileprivate extension String {
+    func createCacheString() -> String {
+        return components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
     }
 }
