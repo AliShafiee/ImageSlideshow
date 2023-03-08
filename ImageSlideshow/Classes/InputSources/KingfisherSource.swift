@@ -29,7 +29,6 @@ public class KingfisherSource: NSObject, InputSource {
     /// - parameter url: a url to be loaded
     /// - parameter placeholder: a placeholder used before image is loaded
     /// - parameter options: options for displaying
-    public init(url: URL, placeholder: UIImage? = nil, options: KingfisherOptionsInfo? = nil) {
     public init(url: URL, placeholder: UIImage? = nil, options: KingfisherOptionsInfo? = nil, contentMode: UIViewContentMode? = nil) {
         self.url = url
         self.placeholder = placeholder
@@ -42,7 +41,6 @@ public class KingfisherSource: NSObject, InputSource {
     /// - parameter urlString: a string url to load
     /// - parameter placeholder: a placeholder used before image is loaded
     /// - parameter options: options for displaying
-    public init?(urlString: String, placeholder: UIImage? = nil, options: KingfisherOptionsInfo? = nil) {
     public init?(urlString: String, placeholder: UIImage? = nil, options: KingfisherOptionsInfo? = nil, contentMode: UIViewContentMode? = nil) {
         if let validUrl = URL(string: urlString) {
             self.url = validUrl
@@ -55,7 +53,6 @@ public class KingfisherSource: NSObject, InputSource {
         }
     }
     
-    public init?(urlString: String, placeHolderImage: UIImage? = nil, downloadApiURL: String, accessToken: String, xsrfToken: String) {
     public init?(urlString: String, placeHolderImage: UIImage? = nil, downloadApiURL: String, accessToken: String, xsrfToken: String, contentMode: UIViewContentMode? = nil) {
         super.init()
         if let validUrl = createURL(urlString, downloadApiURL: downloadApiURL) {
@@ -77,16 +74,13 @@ public class KingfisherSource: NSObject, InputSource {
     public func load(to imageView: UIImageView, with callback: @escaping (UIImage?) -> Void) {
         imageView.contentMode = .center
         imageView.backgroundColor = UIColor(red: 245/255.0, green: 245/255.0, blue: 245/255.0, alpha: 1.0)
-        imageView.kf.setImage(with: self.url, placeholder: self.placeholder, options: self.options, progressBlock: nil) { result in
         imageView.kf.setImage(with: self.url, placeholder: self.placeholder, options: self.options, progressBlock: nil) { [weak self] result in
             switch result {
             case .success(let image):
                 imageView.contentMode = self?.contentMode ?? .scaleAspectFit
                 imageView.backgroundColor = .clear
-                imageView.contentMode = .scaleAspectFit
                 callback(image.image)
             case .failure:
-                callback(self.placeholder)
                 callback(self?.placeholder)
             }
         }
