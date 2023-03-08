@@ -40,6 +40,13 @@ open class FullScreenSlideshowViewController: UIViewController {
 
     /// Input sources to 
     open var inputs: [InputSource]?
+    open var inputs: [InputSource]? {
+        didSet {
+            for input in inputs ?? [] {
+                (input as? KingfisherSource)?.contentMode = .scaleAspectFit
+            }
+        }
+    }
 
     /// Background color
     open var backgroundColor = UIColor.white
