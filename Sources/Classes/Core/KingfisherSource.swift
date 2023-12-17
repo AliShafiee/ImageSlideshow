@@ -7,9 +7,6 @@
 //
 
 import UIKit
-#if SWIFT_PACKAGE
-import ImageSlideshow
-#endif
 import Kingfisher
 
 /// Input Source to image using Kingfisher
